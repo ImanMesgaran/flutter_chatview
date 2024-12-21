@@ -99,99 +99,93 @@ class _ImageMessageViewState extends State<ImageMessageView> {
           iconButton,
         Stack(
           children: [
-            WillPopScope(
-              onWillPop: () async {
-                // Prevent back button dismissal
-                return false;
-              },
-              child: GestureDetector(
-                onTap: () => widget.imageMessageConfig?.onTap != null
-                    ? widget.imageMessageConfig?.onTap!(widget.message)
-                    : null,
-                child: Transform.scale(
-                  scale: widget.highlightImage ? widget.highlightScale : 1.0,
-                  alignment: widget.isMessageBySender
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    padding:
-                        widget.imageMessageConfig?.padding ?? EdgeInsets.zero,
-                    margin: widget.imageMessageConfig?.margin ??
-                        EdgeInsets.only(
-                          top: 6,
-                          right: widget.isMessageBySender ? 6 : 0,
-                          left: widget.isMessageBySender ? 0 : 6,
-                          bottom: widget.message.reaction.reactions.isNotEmpty
-                              ? 15
-                              : 0,
-                        ),
-                    height: widget.imageMessageConfig?.height ?? 200,
-                    width: widget.imageMessageConfig?.width ?? 150,
-                    child: ClipRRect(
-                      borderRadius: widget.imageMessageConfig?.borderRadius ??
-                          BorderRadius.circular(14),
-                      child: (() {
-                        if (imageUrl.isUrl) {
-                          return GestureDetector(
-                            onTap: () => _showFullscreenImage(context,
-                                type: Type.NetworkImage),
-                            child: OctoImage(
-                              colorBlendMode: BlendMode.modulate,
-                              fit: BoxFit.cover,
-                              image: CachedNetworkImageProvider(imageUrl),
-                              placeholderBuilder: OctoBlurHashFix.placeHolder(
-                                  'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                              errorBuilder: OctoBlurHashFix.error(
-                                  'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
-                                  iconColor: Colors.transparent),
-                            ),
-                          );
+            GestureDetector(
+              onTap: () => widget.imageMessageConfig?.onTap != null
+                  ? widget.imageMessageConfig?.onTap!(widget.message)
+                  : null,
+              child: Transform.scale(
+                scale: widget.highlightImage ? widget.highlightScale : 1.0,
+                alignment: widget.isMessageBySender
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: Container(
+                  padding:
+                      widget.imageMessageConfig?.padding ?? EdgeInsets.zero,
+                  margin: widget.imageMessageConfig?.margin ??
+                      EdgeInsets.only(
+                        top: 6,
+                        right: widget.isMessageBySender ? 6 : 0,
+                        left: widget.isMessageBySender ? 0 : 6,
+                        bottom: widget.message.reaction.reactions.isNotEmpty
+                            ? 15
+                            : 0,
+                      ),
+                  height: widget.imageMessageConfig?.height ?? 200,
+                  width: widget.imageMessageConfig?.width ?? 150,
+                  child: ClipRRect(
+                    borderRadius: widget.imageMessageConfig?.borderRadius ??
+                        BorderRadius.circular(14),
+                    child: (() {
+                      if (imageUrl.isUrl) {
+                        return GestureDetector(
+                          onTap: () => _showFullscreenImage(context,
+                              type: Type.NetworkImage),
+                          child: OctoImage(
+                            colorBlendMode: BlendMode.modulate,
+                            fit: BoxFit.cover,
+                            image: CachedNetworkImageProvider(imageUrl),
+                            placeholderBuilder: OctoBlurHashFix.placeHolder(
+                                'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+                            errorBuilder: OctoBlurHashFix.error(
+                                'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
+                                iconColor: Colors.transparent),
+                          ),
+                        );
 
-                          /*return Image.network(
-                            imageUrl,
-                            fit: BoxFit.fitHeight,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes !=
-                                          null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                          );*/
-                        } else if (imageUrl.fromMemory) {
-                          return Image.memory(
-                            base64Decode(imageUrl
-                                .substring(imageUrl.indexOf('base64') + 7)),
-                            fit: BoxFit.fill,
-                          );
-                        } else {
-                          // final _ImageFile = _loadLocalImage(
-                          //   _localImageFile,
-                          //   filePath: widget.message.message,
-                          // );
+                        /*return Image.network(
+                          imageUrl,
+                          fit: BoxFit.fitHeight,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                        );*/
+                      } else if (imageUrl.fromMemory) {
+                        return Image.memory(
+                          base64Decode(imageUrl
+                              .substring(imageUrl.indexOf('base64') + 7)),
+                          fit: BoxFit.fill,
+                        );
+                      } else {
+                        // final _ImageFile = _loadLocalImage(
+                        //   _localImageFile,
+                        //   filePath: widget.message.message,
+                        // );
 
-                          return GestureDetector(
-                            onTap: () => _showFullscreenImage(context,
-                                type: Type.FileImage),
-                            child: OctoImage(
-                              colorBlendMode: BlendMode.modulate,
-                              fit: BoxFit.cover,
-                              image: FileImage(_localImageFile!),
-                              placeholderBuilder: OctoBlurHashFix.placeHolder(
-                                  'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                              errorBuilder: OctoBlurHashFix.error(
-                                  'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
-                                  iconColor: Colors.transparent),
-                            ),
-                          );
-                        }
-                      }()),
-                    ),
+                        return GestureDetector(
+                          onTap: () => _showFullscreenImage(context,
+                              type: Type.FileImage),
+                          child: OctoImage(
+                            colorBlendMode: BlendMode.modulate,
+                            fit: BoxFit.cover,
+                            image: FileImage(_localImageFile!),
+                            placeholderBuilder: OctoBlurHashFix.placeHolder(
+                                'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+                            errorBuilder: OctoBlurHashFix.error(
+                                'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
+                                iconColor: Colors.transparent),
+                          ),
+                        );
+                      }
+                    }()),
                   ),
                 ),
               ),
