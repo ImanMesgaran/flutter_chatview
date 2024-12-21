@@ -127,18 +127,24 @@ class _ImageMessageViewState extends State<ImageMessageView> {
                         BorderRadius.circular(14),
                     child: (() {
                       if (imageUrl.isUrl) {
-                        return GestureDetector(
-                          onTap: () => _showFullscreenImage(context,
-                              type: Type.NetworkImage),
-                          child: OctoImage(
-                            colorBlendMode: BlendMode.modulate,
-                            fit: BoxFit.cover,
-                            image: CachedNetworkImageProvider(imageUrl),
-                            placeholderBuilder: OctoBlurHashFix.placeHolder(
-                                'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                            errorBuilder: OctoBlurHashFix.error(
-                                'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
-                                iconColor: Colors.transparent),
+                        return WillPopScope(
+                          onWillPop: () async {
+                            // Return false to prevent navigation
+                            return false;
+                          },
+                          child: GestureDetector(
+                            onTap: () => _showFullscreenImage(context,
+                                type: Type.NetworkImage),
+                            child: OctoImage(
+                              colorBlendMode: BlendMode.modulate,
+                              fit: BoxFit.cover,
+                              image: CachedNetworkImageProvider(imageUrl),
+                              placeholderBuilder: OctoBlurHashFix.placeHolder(
+                                  'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+                              errorBuilder: OctoBlurHashFix.error(
+                                  'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
+                                  iconColor: Colors.transparent),
+                            ),
                           ),
                         );
 
@@ -170,18 +176,24 @@ class _ImageMessageViewState extends State<ImageMessageView> {
                         //   filePath: widget.message.message,
                         // );
 
-                        return GestureDetector(
-                          onTap: () => _showFullscreenImage(context,
-                              type: Type.FileImage),
-                          child: OctoImage(
-                            colorBlendMode: BlendMode.modulate,
-                            fit: BoxFit.cover,
-                            image: FileImage(_localImageFile!),
-                            placeholderBuilder: OctoBlurHashFix.placeHolder(
-                                'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                            errorBuilder: OctoBlurHashFix.error(
-                                'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
-                                iconColor: Colors.transparent),
+                        return WillPopScope(
+                          onWillPop: () async {
+                            // Return false to prevent navigation
+                            return false;
+                          },
+                          child: GestureDetector(
+                            onTap: () => _showFullscreenImage(context,
+                                type: Type.FileImage),
+                            child: OctoImage(
+                              colorBlendMode: BlendMode.modulate,
+                              fit: BoxFit.cover,
+                              image: FileImage(_localImageFile!),
+                              placeholderBuilder: OctoBlurHashFix.placeHolder(
+                                  'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+                              errorBuilder: OctoBlurHashFix.error(
+                                  'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
+                                  iconColor: Colors.transparent),
+                            ),
                           ),
                         );
                       }
@@ -205,12 +217,12 @@ class _ImageMessageViewState extends State<ImageMessageView> {
     );
   }
 
-  void _showFullscreenImage(BuildContext context, {required Type type}) async {
+  _showFullscreenImage(BuildContext context, {required Type type}) async {
     dynamic provider = (type == Type.FileImage)
         ? FileImage(_localImageFile!)
         : NetworkImage(imageUrl);
 
-    await showDialog(
+    return await showDialog(
       context: context,
       builder: (context) => GestureDetector(
         onTap: () => Navigator.of(context).pop(),
