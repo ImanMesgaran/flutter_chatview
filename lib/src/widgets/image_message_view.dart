@@ -26,6 +26,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatview/src/extensions/blurhash.dart';
 import 'package:chatview/src/extensions/extensions.dart';
 import 'package:chatview/src/models/models.dart';
+import 'package:chatview/src/utils/image_types.dart' as it;
+import 'package:chatview/src/widgets/image_message_view_enlarge_photo.dart';
 import 'package:flutter/material.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:path_provider/path_provider.dart';
@@ -128,8 +130,19 @@ class _ImageMessageViewState extends State<ImageMessageView> {
                     child: (() {
                       if (imageUrl.isUrl) {
                         return GestureDetector(
-                          onTap: () => _showFullscreenImage(context,
-                              type: Type.NetworkImage),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return EnlargedPhotoPage(
+                                    imageUrl: imageUrl,
+                                    pictureType: it.PictureType.NetworkImage,
+                                    localImageFile: _localImageFile,
+                                  );
+                                },
+                              ),
+                            );
+                          },
                           child: OctoImage(
                             colorBlendMode: BlendMode.modulate,
                             fit: BoxFit.cover,
@@ -171,8 +184,19 @@ class _ImageMessageViewState extends State<ImageMessageView> {
                         // );
 
                         return GestureDetector(
-                          onTap: () => _showFullscreenImage(context,
-                              type: Type.FileImage),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return EnlargedPhotoPage(
+                                    pictureType: it.PictureType.FileImage,
+                                    imageUrl: imageUrl,
+                                    localImageFile: _localImageFile,
+                                  );
+                                },
+                              ),
+                            );
+                          },
                           child: OctoImage(
                             colorBlendMode: BlendMode.modulate,
                             fit: BoxFit.cover,
@@ -205,8 +229,9 @@ class _ImageMessageViewState extends State<ImageMessageView> {
     );
   }
 
-  void _showFullscreenImage(BuildContext context, {required Type type}) async {
-    dynamic provider = (type == Type.FileImage)
+  void _showFullscreenImage(BuildContext context,
+      {required it.PictureType type}) async {
+    dynamic provider = (type == it.PictureType.FileImage)
         ? FileImage(_localImageFile!)
         : NetworkImage(imageUrl);
 
@@ -245,5 +270,3 @@ class _ImageMessageViewState extends State<ImageMessageView> {
     }
   }
 }
-
-enum Type { FileImage, NetworkImage }
