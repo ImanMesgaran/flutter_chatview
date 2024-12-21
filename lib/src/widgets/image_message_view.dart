@@ -22,14 +22,18 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chatview/src/extensions/blurhash.dart';
 import 'package:chatview/src/extensions/extensions.dart';
 import 'package:chatview/src/models/models.dart';
 import 'package:flutter/material.dart';
+import 'package:octo_image/octo_image.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'reaction_widget.dart';
 import 'share_icon.dart';
 
-class ImageMessageView extends StatelessWidget {
+class ImageMessageView extends StatefulWidget {
   const ImageMessageView({
     Key? key,
     required this.message,
@@ -58,50 +62,87 @@ class ImageMessageView extends StatelessWidget {
   /// Provides scale of highlighted image when user taps on replied image.
   final double highlightScale;
 
-  String get imageUrl => message.message;
+  @override
+  State<ImageMessageView> createState() => _ImageMessageViewState();
+}
+
+class _ImageMessageViewState extends State<ImageMessageView> {
+  String get imageUrl => widget.message.message;
 
   Widget get iconButton => ShareIcon(
-        shareIconConfig: imageMessageConfig?.shareIconConfig,
+        shareIconConfig: widget.imageMessageConfig?.shareIconConfig,
         imageUrl: imageUrl,
       );
+
+  File? _localImageFile;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the Future here
+    final _ImageFile = _loadLocalImage(
+      _localImageFile,
+      filePath: widget.message.message,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment:
-          isMessageBySender ? MainAxisAlignment.end : MainAxisAlignment.start,
+      mainAxisAlignment: widget.isMessageBySender
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.start,
       children: [
-        if (isMessageBySender && !(imageMessageConfig?.hideShareIcon ?? false))
+        if (widget.isMessageBySender &&
+            !(widget.imageMessageConfig?.hideShareIcon ?? false))
           iconButton,
         Stack(
           children: [
             GestureDetector(
-              onTap: () => imageMessageConfig?.onTap != null
-                  ? imageMessageConfig?.onTap!(message)
+              onTap: () => widget.imageMessageConfig?.onTap != null
+                  ? widget.imageMessageConfig?.onTap!(widget.message)
                   : null,
               child: Transform.scale(
-                scale: highlightImage ? highlightScale : 1.0,
-                alignment: isMessageBySender
+                scale: widget.highlightImage ? widget.highlightScale : 1.0,
+                alignment: widget.isMessageBySender
                     ? Alignment.centerRight
                     : Alignment.centerLeft,
                 child: Container(
-                  padding: imageMessageConfig?.padding ?? EdgeInsets.zero,
-                  margin: imageMessageConfig?.margin ??
+                  padding:
+                      widget.imageMessageConfig?.padding ?? EdgeInsets.zero,
+                  margin: widget.imageMessageConfig?.margin ??
                       EdgeInsets.only(
                         top: 6,
-                        right: isMessageBySender ? 6 : 0,
-                        left: isMessageBySender ? 0 : 6,
-                        bottom: message.reaction.reactions.isNotEmpty ? 15 : 0,
+                        right: widget.isMessageBySender ? 6 : 0,
+                        left: widget.isMessageBySender ? 0 : 6,
+                        bottom: widget.message.reaction.reactions.isNotEmpty
+                            ? 15
+                            : 0,
                       ),
-                  height: imageMessageConfig?.height ?? 200,
-                  width: imageMessageConfig?.width ?? 150,
+                  height: widget.imageMessageConfig?.height ?? 200,
+                  width: widget.imageMessageConfig?.width ?? 150,
                   child: ClipRRect(
-                    borderRadius: imageMessageConfig?.borderRadius ??
+                    borderRadius: widget.imageMessageConfig?.borderRadius ??
                         BorderRadius.circular(14),
                     child: (() {
                       if (imageUrl.isUrl) {
-                        return Image.network(
+                        return GestureDetector(
+                          onTap: () => _showFullscreenImage(context,
+                              type: Type.NetworkImage),
+                          child: OctoImage(
+                            colorBlendMode: BlendMode.modulate,
+                            fit: BoxFit.cover,
+                            image: CachedNetworkImageProvider(imageUrl),
+                            placeholderBuilder: OctoBlurHashFix.placeHolder(
+                                'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+                            errorBuilder: OctoBlurHashFix.error(
+                                'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
+                                iconColor: Colors.transparent),
+                          ),
+                        );
+
+                        /*return Image.network(
                           imageUrl,
                           fit: BoxFit.fitHeight,
                           loadingBuilder: (context, child, loadingProgress) {
@@ -116,7 +157,7 @@ class ImageMessageView extends StatelessWidget {
                               ),
                             );
                           },
-                        );
+                        );*/
                       } else if (imageUrl.fromMemory) {
                         return Image.memory(
                           base64Decode(imageUrl
@@ -124,9 +165,24 @@ class ImageMessageView extends StatelessWidget {
                           fit: BoxFit.fill,
                         );
                       } else {
-                        return Image.file(
-                          File(imageUrl),
-                          fit: BoxFit.fill,
+                        // final _ImageFile = _loadLocalImage(
+                        //   _localImageFile,
+                        //   filePath: widget.message.message,
+                        // );
+
+                        return GestureDetector(
+                          onTap: () => _showFullscreenImage(context,
+                              type: Type.FileImage),
+                          child: OctoImage(
+                            colorBlendMode: BlendMode.modulate,
+                            fit: BoxFit.cover,
+                            image: FileImage(_localImageFile!),
+                            placeholderBuilder: OctoBlurHashFix.placeHolder(
+                                'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+                            errorBuilder: OctoBlurHashFix.error(
+                                'LKO2:N%2Tw=w]~RBVZRi};RPxuwH',
+                                iconColor: Colors.transparent),
+                          ),
                         );
                       }
                     }()),
@@ -134,17 +190,60 @@ class ImageMessageView extends StatelessWidget {
                 ),
               ),
             ),
-            if (message.reaction.reactions.isNotEmpty)
+            if (widget.message.reaction.reactions.isNotEmpty)
               ReactionWidget(
-                isMessageBySender: isMessageBySender,
-                reaction: message.reaction,
-                messageReactionConfig: messageReactionConfig,
+                isMessageBySender: widget.isMessageBySender,
+                reaction: widget.message.reaction,
+                messageReactionConfig: widget.messageReactionConfig,
               ),
           ],
         ),
-        if (!isMessageBySender && !(imageMessageConfig?.hideShareIcon ?? false))
+        if (!widget.isMessageBySender &&
+            !(widget.imageMessageConfig?.hideShareIcon ?? false))
           iconButton,
       ],
     );
   }
+
+  void _showFullscreenImage(BuildContext context, {required Type type}) async {
+    dynamic provider = (type == Type.FileImage)
+        ? FileImage(_localImageFile!)
+        : NetworkImage(imageUrl);
+
+    await showDialog(
+      context: context,
+      builder: (context) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Container(
+          color: Colors.black,
+          child: Center(
+            child: OctoImage(
+              image: provider,
+              placeholderBuilder: OctoPlaceholder.circularProgressIndicator(),
+              errorBuilder: OctoError.icon(color: Colors.red),
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  File? _loadLocalImage(File? localFile, {required String filePath}) {
+    try {
+      // Check if the file exists
+      final file = File(filePath);
+      if (file.existsSync()) {
+        _localImageFile = file;
+
+        return _localImageFile;
+      }
+      return File('assets/example_image.png');
+    } catch (e) {
+      print("Error loading image: $e");
+      return File('assets/example_image.png');
+    }
+  }
 }
+
+enum Type { FileImage, NetworkImage }
