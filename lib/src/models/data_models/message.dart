@@ -27,8 +27,6 @@ class Message {
   /// Provides id
   final String id;
 
-  final int conversationId;
-
   /// Used for accessing widget's render box.
   final GlobalKey key;
 
@@ -58,7 +56,6 @@ class Message {
 
   Message({
     this.id = '',
-    this.conversationId = 0,
     required this.message,
     required this.createdAt,
     required this.sentBy,
